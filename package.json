@@ -1,10 +1,9 @@
 {
   "name": "@cordisjs/unyaml",
   "description": "Universal YAML loader for Node.js, esbuild and Vite",
-  "version": "2.0.0",
+  "version": "2.0.3",
   "packageManager": "yarn@4.14.1",
-  "type": "module",
-  "main": "lib/index.mjs",
+  "type": "commonjs",
   "files": [
     "lib",
     "types.d.ts"
@@ -16,11 +15,11 @@
     },
     "./esbuild": {
       "types": "./lib/esbuild.d.ts",
-      "default": "./lib/esbuild.cjs"
+      "default": "./lib/esbuild.js"
     },
     "./vite": {
       "types": "./lib/vite.d.ts",
-      "default": "./lib/vite.cjs"
+      "default": "./lib/vite.js"
     },
     "./types": "./types.d.ts",
     "./package.json": "./package.json"
@@ -60,7 +59,7 @@
     "@types/node": "^25.6.0",
     "dumble": "^0.2.3",
     "esbuild": "^0.28.0",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^6.0.0"
   }
 }

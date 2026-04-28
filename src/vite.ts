@@ -1,23 +1,25 @@
 import * as yaml from 'js-yaml'
 import toSource from 'tosource'
 import { TransformResult } from 'rollup'
-import esbuildPlugin from './esbuild.js'
+import esbuildPlugin from './esbuild'
 
-export interface Options extends Omit<yaml.LoadOptions, 'filename'> {
-  /**
-   * Filter regular expression matched against the resolved id.
-   * @default /\.ya?ml(?:\?.*)?$/
-   */
-  filter?: RegExp
+namespace unyaml {
+  export interface Options extends Omit<yaml.LoadOptions, 'filename'> {
+    /**
+     * Filter regular expression matched against the resolved id.
+     * @default /\.ya?ml(?:\?.*)?$/
+     */
+    filter?: RegExp
+  }
+
+  export interface Plugin {
+    name: string
+    config?: () => any
+    transform?: (code: string, id: string) => TransformResult
+  }
 }
 
-export interface Plugin {
-  name: string
-  config?: () => any
-  transform?: (code: string, id: string) => TransformResult
-}
-
-export default function unyaml(options: Options = {}): Plugin {
+function unyaml(options: unyaml.Options = {}): unyaml.Plugin {
   const { filter = /\.ya?ml(?:\?.*)?$/, ...loadOptions } = options
   return {
     name: 'unyaml',
@@ -40,3 +42,5 @@ export default function unyaml(options: Options = {}): Plugin {
     },
   }
 }
+
+export = unyaml

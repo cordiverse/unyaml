@@ -3,20 +3,22 @@ import type { PluginBuild } from 'esbuild'
 import * as yaml from 'js-yaml'
 import toSource from 'tosource'
 
-export interface Options extends Omit<yaml.LoadOptions, 'filename'> {
-  /**
-   * Filter regular expression matched against the resolved path.
-   * @default /\.ya?ml$/
-   */
-  filter?: RegExp
+namespace unyaml {
+  export interface Options extends Omit<yaml.LoadOptions, 'filename'> {
+    /**
+     * Filter regular expression matched against the resolved path.
+     * @default /\.ya?ml$/
+     */
+    filter?: RegExp
+  }
+
+  export interface Plugin {
+    name: string
+    setup(build: any): void
+  }
 }
 
-export interface Plugin {
-  name: string
-  setup(build: any): void
-}
-
-export default function unyaml(options: Options = {}): Plugin {
+function unyaml(options: unyaml.Options = {}): unyaml.Plugin {
   const { filter = /\.ya?ml$/, ...loadOptions } = options
   return {
     name: 'unyaml',
@@ -32,3 +34,5 @@ export default function unyaml(options: Options = {}): Plugin {
     },
   }
 }
+
+export = unyaml
