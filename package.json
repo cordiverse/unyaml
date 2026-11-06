@@ -47,6 +47,9 @@
     "vite",
     "plugin"
   ],
+  "engines": {
+    "node": "^22.15 || >=24"
+  },
   "scripts": {
     "build": "tsc -b && dumble"
   },

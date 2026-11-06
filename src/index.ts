@@ -1,40 +1,31 @@
 import { readFileSync } from 'node:fs'
-import { readFile } from 'node:fs/promises'
-import { createRequire, InitializeHook, LoadHook, Module, ResolveHook } from 'node:module'
-import { fileURLToPath, pathToFileURL } from 'node:url'
+import Module, { createRequire, registerHooks } from 'node:module'
+import { pathToFileURL } from 'node:url'
 import * as yaml from 'js-yaml'
-import toSource from 'tosource'
+
+const extensions = ['.yml', '.yaml']
 
 const fileUrl = typeof import.meta.url === 'string' ? import.meta.url : pathToFileURL(__filename).href
-const require = createRequire(fileUrl)
-
-// for esm
-// Module.register is only available in Node.js v20.6.0 or later
-// https://nodejs.org/api/module.html#moduleregisterspecifier-parenturl-options
-Module.register?.(fileUrl)
+const yamlPath = createRequire(fileUrl).resolve('js-yaml')
 
 // for cjs
-for (const extname of ['.yml', '.yaml']) {
+// Registered extensions take part in the extension probing of `require()`,
+// which the synchronous hooks do not provide.
+for (const extname of extensions) {
   // eslint-disable-next-line n/no-deprecated-api
-  require.extensions[extname] = (module, filename) => {
-    const source = readFileSync(filename, 'utf8')
-    module.exports = yaml.load(source)
+  (Module as any)._extensions[extname] = (module: Module, filename: string) => {
+    module.exports = yaml.load(readFileSync(filename, 'utf8'))
   }
 }
 
-export const initialize: InitializeHook = async () => {}
-
-export const resolve: ResolveHook = async (specifier, context, next) => {
-  return next(specifier, context)
-}
-
-export const load: LoadHook = async (url, context, next) => {
-  if (url.endsWith('.yml') || url.endsWith('.yaml')) {
-    const content = await readFile(fileURLToPath(url), 'utf8')
-    const source = 'export default ' + toSource(yaml.load(content))
-    // JSON modules is experimental, so we just use `module` format
-    return { format: 'module', source, shortCircuit: true }
-  } else {
-    return next(url, context)
-  }
-}
+// for esm
+// The generated module parses the file when it is evaluated, so the parsed value
+// keeps its keys, types and aliases, and is owned by the module cache of Node.js.
+// https://nodejs.org/api/module.html#moduleregisterhooksoptions
+registerHooks({
+  load(url, context, next) {
+    if (!extensions.some(ext => url.endsWith(ext))) return next(url, context)
+    const source = `module.exports = require(${JSON.stringify(yamlPath)}).load(require('node:fs').readFileSync(__filename, 'utf8'))`
+    return { format: 'commonjs', source, shortCircuit: true }
+  },
+})

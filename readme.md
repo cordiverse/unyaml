@@ -8,6 +8,8 @@ Universal YAML loader. Works in Node.js (CJS `require` / ESM `import`), [esbuild
 
 ## Node.js
 
+Node.js `^22.15 || >=24` is required.
+
 ### From CLI
 
 CJS:
@@ -16,7 +18,7 @@ CJS:
 node -r unyaml path/to/index.cjs
 ```
 
-ESM (Node.js 20.6.0 or later):
+ESM:
 
 ```sh
 node --import unyaml path/to/index.mjs
