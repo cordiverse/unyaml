@@ -18,7 +18,9 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: 26
+      - name: Install Corepack
+        run: npm install -g --force corepack@latest
       - name: Enable Corepack
         run: corepack enable
       - name: Install
