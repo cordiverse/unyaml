@@ -18,15 +18,39 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: 26
+      - name: Install Corepack
+        run: npm install -g --force corepack@latest
       - name: Enable Corepack
         run: corepack enable
       - name: Install
         run: yarn --no-immutable
       - name: Build
         run: yarn build
-      - name: Publish
+      - name: Check version
+        id: check
         if: >-
           github.event_name == 'push' &&
           contains(fromJson('["refs/heads/main"]'), github.ref)
+        run: |
+          set -euo pipefail
+          name="$(jq -r .name package.json)"
+          version="$(jq -r .version package.json)"
+          status="$(curl -sS -o /dev/null -w '%{http_code}' "https://registry.npmjs.org/${name/\//%2F}/${version}")"
+          case "$status" in
+            200)
+              echo "${name}@${version} already exists on npm."
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+              ;;
+            404)
+              echo "${name}@${version} does not exist on npm."
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::Unexpected registry response ${status} for ${name}@${version}."
+              exit 1
+              ;;
+          esac
+      - name: Publish
+        if: steps.check.outputs.publish == 'true'
         run: npm publish
